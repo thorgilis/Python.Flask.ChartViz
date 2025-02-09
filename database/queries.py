@@ -41,7 +41,7 @@ df_platform = pd.read_sql(platform_query, engine)
 df_price = pd.read_sql(price_platform_query, engine)
 
 def get_review_dist_by_platform(platform=None):
-    if platform != 'All' and platform != '':
+    if platform != 'All':
         query = """
         SELECT 
             review_score_desc AS review_category,
@@ -70,7 +70,7 @@ def get_review_dist_by_platform(platform=None):
         return pd.DataFrame(result.fetchall(), columns=result.keys())
 
 def get_top_games_by_platform(platform=None):
-    if platform != 'All' and platform != '':
+    if platform != 'All':
         query = """
         SELECT 
             name,
