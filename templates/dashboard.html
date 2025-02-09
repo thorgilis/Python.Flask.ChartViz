@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block title %}Steam Games Dashboard{% endblock %}
+
+{% block head_extra %}
+<style>
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+        padding: 20px;
+    }
+    .chart-container {
+        border: 1px solid #ddd;
+        padding: 15px;
+        border-radius: 8px;
+        background: white;
+    }
+    /* Set all card bodies to auto by default */
+    .card-body {
+        height: auto;
+    }
+    /* Override the height for card bodies inside the carousel and center content */
+    .carousel .card-body {
+        height: 500px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .vega-embed {
+        width: 90% !important;
+        height: 100% !important;
+        margin: 0 auto !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Filter Section -->
+<div class="row mb-4">
+    <div class="col-md-6 mx-auto">
+        <div class="card">
+            <div class="card-body">
+                <label for="platformFilter" class="form-label">Select Platform:</label>
+                <select class="form-select" id="platformFilter" onchange="updateChart(this.value)">
+                    <option value="">All Platforms</option>
+                    {% for platform in platforms %}
+                    <option value="{{ platform }}" {% if platform == selected_platform %}selected{% endif %}>
+                        {{ platform }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Carousel Section -->
+<div class="row">
+    <div class="col-md-10 mx-auto">
+        <div id="chartCarousel" class="carousel slide carousel-fade" data-bs-interval="false">
+            <div class="carousel-inner">
+                <!-- Platform Distribution Chart -->
+                <div class="carousel-item {% if carouselIndex|int == 0 %}active{% endif %}">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title text-center">Platform Distribution</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="platform-chart" class="vega-embed"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Price Distribution Chart -->
+                <div class="carousel-item {% if carouselIndex|int == 1 %}active{% endif %}">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title text-center">Price Distribution</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="price-chart" class="vega-embed"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Top Rated Games Chart -->
+                <div class="carousel-item {% if carouselIndex|int == 2 %}active{% endif %}">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title text-center">Top Rated Games</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="top-games" class="vega-embed"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Review Distribution Chart -->
+                <div class="carousel-item {% if carouselIndex|int == 3 %}active{% endif %}">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title text-center">Review Distribution</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="review-chart" class="vega-embed"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation Arrows -->
+            <button class="carousel-control-prev" type="button" data-bs-target="#chartCarousel" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Previous</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#chartCarousel" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Next</span>
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Render all charts
+    const charts = {{ charts|tojson|safe }};
+    
+    vegaEmbed('#platform-chart', charts.platform_chart, { "actions": false, "width": "container", "height": "container" });
+    vegaEmbed('#price-chart', charts.price_chart, { "actions": false, "width": "container", "height": "container" });
+    vegaEmbed('#top-games', charts.top_games, { "actions": false, "width": "container", "height": "container" });
+    vegaEmbed('#review-chart', charts.review_chart, { "actions": false, "width": "container", "height": "container" });
+    
+    // Save the active carousel index before filtering
+    function updateChart(platform) {
+        const activeItem = document.querySelector('.carousel-item.active');
+        const carouselItems = document.querySelectorAll('.carousel-item');
+        const activeIndex = Array.from(carouselItems).indexOf(activeItem);
+        window.location.href = '/?platform=' + encodeURIComponent(platform) + '&carouselIndex=' + activeIndex;
+    }
+
+    // Restore carousel slide based on URL parameter on page load (if needed)
+    document.addEventListener('DOMContentLoaded', function() {
+        const params = new URLSearchParams(window.location.search);
+        const carouselIndex = params.get('carouselIndex');
+        if (carouselIndex !== null) {
+            const carouselElement = document.getElementById('chartCarousel');
+            const carouselInstance = bootstrap.Carousel.getInstance(carouselElement) || new bootstrap.Carousel(carouselElement, { ride: false, interval: false });
+            carouselInstance.to(parseInt(carouselIndex));
+        }
+    });
+
+    // Change URL when carousel slide changes
+    document.getElementById('chartCarousel').addEventListener('slid.bs.carousel', function () {
+        const carouselItems = document.querySelectorAll('.carousel-item');
+        const activeItem = document.querySelector('.carousel-item.active');
+        const activeIndex = Array.from(carouselItems).indexOf(activeItem);
+        const url = new URL(window.location);
+        url.searchParams.set('carouselIndex', activeIndex);
+        history.replaceState(null, '', url);
+        // Trigger a resize event to force chart re-rendering
+        window.dispatchEvent(new Event('resize'));
+    });
+</script>
+{% endblock %}

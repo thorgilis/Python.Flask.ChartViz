@@ -1,0 +1,6 @@
+Flask
+pandas
+altair
+sqlalchemy
+psycopg2-binary
+gunicorn

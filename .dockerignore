@@ -1,0 +1,36 @@
+# Exclude Python cache and compiled files
+__pycache__
+*.py[cod]
+*$py.class
+
+# Exclude C extensions and distributions
+*.so
+build/
+dist/
+*.egg-info
+.eggs/
+
+# Exclude virtual environments
+.env
+.venv
+env/
+venv/
+
+# Exclude version control directories
+.git
+.gitignore
+
+# Exclude logs and test outputs
+*.log
+.tox/
+.nox/
+htmlcov/
+.pytest_cache/
+
+# Exclude Dockerfile if needed (if you have multiple)
+# Dockerfile*
+
+# Exclude other OS or editor specific files
+.DS_Store
+.idea/
+.vscode/
