@@ -4,3 +4,4 @@ altair
 sqlalchemy
 psycopg2-binary
 gunicorn
+python-dotenv
