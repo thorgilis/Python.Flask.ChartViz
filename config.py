@@ -1,2 +1,7 @@
-DATABASE_URL = "postgresql://myuser:mypassword@192.168.0.63:5432/postgres"
-DEBUG = True
+from dotenv import load_dotenv
+import os
+
+# Load environment variables from .env file
+load_dotenv()
+
+DATABASE_URL = os.getenv("DATABASE_URL")
