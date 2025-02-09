@@ -27,6 +27,7 @@ interactive-games-dashboard
 │   └── dashboard.html
 ├── config.py
 ├── requirements.txt
+├── Dockerfile
 ├── run.py
 └── README.md
 ```
@@ -48,6 +49,8 @@ interactive-games-dashboard
 
 ## Running the Application
 
+### Using Python
+
 To run the application, execute the following command:
 
 ```bash
@@ -55,6 +58,13 @@ python run.py
 ```
 
 The application will be accessible at `http://127.0.0.1:5000`.
+
+### Using Docker
+
+1. Build the Docker image:
+   ```bash
+   docker build -t interactive-games-dashboard .
+   ```
 
 ## Usage
 
