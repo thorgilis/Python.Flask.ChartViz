@@ -41,7 +41,6 @@
     <div class="col-md-6 mx-auto">
         <div class="card">
             <div class="card-body">
-                <label for="platformFilter" class="form-label">Select Platform:</label>
                 <select class="form-select" id="platformFilter" onchange="updateChart(this.value)">
                     <option value="">All Platforms</option>
                     {% for platform in platforms %}
