@@ -141,7 +141,7 @@
         window.location.href = '/?platform=' + encodeURIComponent(platform) + '&carouselIndex=' + activeIndex;
     }
 
-    // Restore carousel slide based on URL parameter on page load (if needed)
+    // Restore carousel slide based on URL parameter on page load
     document.addEventListener('DOMContentLoaded', function() {
         const params = new URLSearchParams(window.location.search);
         const carouselIndex = params.get('carouselIndex');

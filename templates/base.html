@@ -12,10 +12,44 @@
 </head>
 <body class="bg-light">
     {% block navbar %}
-    <nav class="navbar navbar-dark bg-dark mb-4">
-        <div class="container">
-            <a class="navbar-brand mb-0 h1" href="/">Steam Games Dashboard</a>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+      <div class="container">
+        <a class="navbar-brand mb-0 h1" href="/">Steam Games Dashboard</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#baseNavbar" aria-controls="baseNavbar" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="baseNavbar">
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="reportsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Reports
+              </a>
+              <ul class="dropdown-menu" aria-labelledby="reportsDropdown">
+                <li>
+                  <a class="dropdown-item" href="/?{% if selected_platform %}platform={{ selected_platform }}&{% endif %}carouselIndex=0">
+                    Platform Distribution
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="/?{% if selected_platform %}platform={{ selected_platform }}&{% endif %}carouselIndex=1">
+                    Price Distribution
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="/?{% if selected_platform %}platform={{ selected_platform }}&{% endif %}carouselIndex=2">
+                    Top Rated Games
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="/?{% if selected_platform %}platform={{ selected_platform }}&{% endif %}carouselIndex=3">
+                    Review Distribution
+                  </a>
+                </li>
+              </ul>
+            </li>
+          </ul>
         </div>
+      </div>
     </nav>
     {% endblock %}
     
