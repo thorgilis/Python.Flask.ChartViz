@@ -1,8 +1,8 @@
 import pandas as pd
 from sqlalchemy import create_engine, text
+from config import DATABASE_URL
 
 # 1. Connect to PostgreSQL
-DATABASE_URL = "postgresql://myuser:mypassword@192.168.0.63:5432/postgres"
 engine = create_engine(DATABASE_URL)
 
 # Platform Distribution
