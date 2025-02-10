@@ -108,6 +108,18 @@
                 </div>
             </div>
 
+            <!-- Price Box Chart -->
+            <div class="carousel-item {% if carouselIndex|int == 4 %}active{% endif %}">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title text-center">Price Distribution</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="price-box" class="vega-embed"></div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Navigation Arrows -->
             <button class="carousel-control-prev" type="button" data-bs-target="#chartCarousel" data-bs-slide="prev">
                 <span class="carousel-control-prev-icon" aria-hidden="true"></span>
@@ -131,6 +143,7 @@
     vegaEmbed('#price-chart', charts.price_chart, { "actions": false, "width": "container", "height": "container" });
     vegaEmbed('#top-games', charts.top_games, { "actions": false, "width": "container", "height": "container" });
     vegaEmbed('#review-chart', charts.review_chart, { "actions": false, "width": "container", "height": "container" });
+    vegaEmbed('#price-box', charts.price_box, { "actions": false, "width": "container", "height": "container" });
     
     // Save the active carousel index before filtering
     function updateChart(platform) {
