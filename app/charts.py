@@ -1,9 +1,5 @@
 import altair
-import altair as alt
 import numpy as np
-
-# Configure Altair
-altair.data_transformers.disable_max_rows()
 
 def base_chart_props(chart, title):
     """
