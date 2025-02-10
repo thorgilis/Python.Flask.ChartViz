@@ -1,39 +1,42 @@
 import pandas as pd
 from sqlalchemy import create_engine, text
-from config import DATABASE_URL
+import os
 
-# 1. Connect to PostgreSQL
-engine = create_engine(DATABASE_URL)
+# 1. Connect to SQLite
+current_dir = os.path.dirname(os.path.abspath(__file__))
+DATABASE_PATH = os.path.join(current_dir, 'data.db')
+engine = create_engine(f'sqlite:///{DATABASE_PATH}')
 
 # Platform Distribution
+# Note: Using json_each since SQLite stores arrays as JSON strings
 platform_query = """
 SELECT 
-    unnest(platforms) as platform,
+    value as platform,
     COUNT(*) as game_count
-FROM steam_games_parsed
-GROUP BY unnest(platforms)
+FROM steam_games,
+json_each(platforms)
+GROUP BY value
 ORDER BY game_count DESC
 """
 
 # Price Distribution by Platform
 price_platform_query = """
-with cte as 
-(
-SELECT 
-    ROUND(sgp."price_initial (USD)" / 5.0) * 5 AS rounded_price,
-    COUNT(DISTINCT sgp.steam_appid) AS app_count
-    ,platforms
-FROM steam_games_parsed sgp
-GROUP BY rounded_price,platforms
-HAVING COUNT(DISTINCT sgp.steam_appid) > 5
+WITH cte AS (
+    SELECT 
+        ROUND(CAST("price_initial (USD)" AS FLOAT) / 5.0) * 5 AS rounded_price,
+        COUNT(DISTINCT steam_appid) AS app_count,
+        platforms
+    FROM steam_games
+    GROUP BY rounded_price, platforms
+    HAVING COUNT(DISTINCT steam_appid) > 5
 )
 SELECT 
-    unnest(platforms) as platform,
+    json_each.value as platform,
     AVG(rounded_price) as avg_price,
     MIN(rounded_price) as min_price,
     MAX(rounded_price) as max_price
-FROM cte
-GROUP BY unnest(platforms)
+FROM cte, json_each(cte.platforms)
+GROUP BY json_each.value
 """
 
 # Create DataFrames
@@ -46,9 +49,10 @@ def get_review_dist_by_platform(platform=None):
         SELECT 
             review_score_desc AS review_category,
             COUNT(DISTINCT steam_appid) AS game_count
-        FROM steam_games_parsed
-        WHERE review_score_desc !~ 'user reviews'
-            AND :platform = ANY(platforms)
+        FROM steam_games,
+        json_each(platforms)
+        WHERE review_score_desc NOT LIKE '%user reviews%'
+            AND json_each.value = :platform
         GROUP BY review_category
         ORDER BY game_count DESC
         """
@@ -58,8 +62,8 @@ def get_review_dist_by_platform(platform=None):
         SELECT 
             review_score_desc AS review_category,
             COUNT(DISTINCT steam_appid) AS game_count
-        FROM steam_games_parsed
-        WHERE review_score_desc !~ 'user reviews'
+        FROM steam_games
+        WHERE review_score_desc NOT LIKE '%user reviews%'
         GROUP BY review_category
         ORDER BY game_count DESC
         """
@@ -78,10 +82,11 @@ def get_top_games_by_platform(platform=None):
             total_reviews,
             metacritic,
             "price_initial (USD)"
-        FROM steam_games_parsed
+        FROM steam_games,
+        json_each(platforms)
         WHERE metacritic IS NOT NULL
             AND total_reviews > 1000
-            AND :platform = ANY(platforms)
+            AND json_each.value = :platform
         ORDER BY metacritic DESC, total_reviews DESC
         LIMIT 5
         """
@@ -94,7 +99,7 @@ def get_top_games_by_platform(platform=None):
             total_reviews,
             metacritic,
             "price_initial (USD)"
-        FROM steam_games_parsed
+        FROM steam_games
         WHERE metacritic IS NOT NULL
             AND total_reviews > 1000
         ORDER BY metacritic DESC, total_reviews DESC
