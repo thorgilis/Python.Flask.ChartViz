@@ -18,6 +18,7 @@ interactive-games-dashboard
 │   └── charts.py
 ├── database
 │   ├── __init__.py
+│   ├── data.db
 │   └── queries.py
 ├── static
 │   └── css
