@@ -1,4 +1,4 @@
-# Interactive Games Dashboard
+``# Interactive Games Dashboard
 
 This project is a web application that provides interactive charts based on data from a PostgreSQL database. It allows users to explore various metrics related to video games, including top games, worst games, top free games, and a comparison of free games versus paid games.
 
@@ -64,6 +64,16 @@ The application will be accessible at `http://127.0.0.1:5000`.
 1. Build the Docker image:
    ```bash
    docker build -t interactive-games-dashboard .
+   ```
+
+2. Build the Docker image, with tags:
+   ```bash
+   docker build --platform=linux/amd64 -t 192.168.0.63:5000/interactive-games-dashboard:latest .
+   ```
+
+3. Push It!!
+   ```
+   docker push 192.168.0.63:5000/interactive-games-dashboard:latest
    ```
 
 ## Usage
