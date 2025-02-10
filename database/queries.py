@@ -2,113 +2,157 @@ import pandas as pd
 from sqlalchemy import create_engine, text
 import os
 
-# 1. Connect to SQLite
+# Database connection setup
 current_dir = os.path.dirname(os.path.abspath(__file__))
 DATABASE_PATH = os.path.join(current_dir, 'data.db')
 engine = create_engine(f'sqlite:///{DATABASE_PATH}')
 
-# Platform Distribution
-# Note: Using json_each since SQLite stores arrays as JSON strings
-platform_query = """
-SELECT 
-    value as platform,
-    COUNT(*) as game_count
-FROM steam_games,
-json_each(platforms)
-GROUP BY value
-ORDER BY game_count DESC
-"""
+def execute_query(query, params=None):
+    """Execute query and return DataFrame"""
+    try:
+        with engine.connect() as conn:
+            result = conn.execute(text(query), params or {})
+            return pd.DataFrame(result.fetchall(), columns=result.keys())
+    except Exception as e:
+        return pd.DataFrame()
 
-# Price Distribution by Platform
-price_platform_query = """
-WITH cte AS (
+def get_platforms():
+    query = """
+    SELECT DISTINCT json_each.value as platform
+    FROM steam_games,
+    json_each(platforms)
+    """
+    platforms = execute_query(query)
+    return list(platforms['platform'])
+
+def get_platform_distribution(platform=None):
+    query = """
     SELECT 
-        ROUND(CAST("price_initial (USD)" AS FLOAT) / 5.0) * 5 AS rounded_price,
-        COUNT(DISTINCT steam_appid) AS app_count,
-        platforms
-    FROM steam_games
-    GROUP BY rounded_price, platforms
-    HAVING COUNT(DISTINCT steam_appid) > 5
-)
-SELECT 
-    json_each.value as platform,
-    AVG(rounded_price) as avg_price,
-    MIN(rounded_price) as min_price,
-    MAX(rounded_price) as max_price
-FROM cte, json_each(cte.platforms)
-GROUP BY json_each.value
-"""
+        value as platform,
+        COUNT(DISTINCT steam_appid) as game_count
+    FROM steam_games,
+    json_each(platforms)
+    WHERE 1=1
+    {platform_filter}
+    GROUP BY value
+    ORDER BY game_count DESC
+    """
+    
+    platform_filter = "AND json_each.value = :platform" if platform else ""
+    final_query = query.format(platform_filter=platform_filter)
+    return execute_query(final_query, {"platform": platform} if platform else None)
 
-# Create DataFrames
-df_platform = pd.read_sql(platform_query, engine)
-df_price = pd.read_sql(price_platform_query, engine)
-
-def get_review_dist_by_platform(platform=None):
-    if platform != 'All':
-        query = """
+def get_price_distribution(platform=None):
+    query = """
+    WITH price_data AS (
         SELECT 
-            review_score_desc AS review_category,
-            COUNT(DISTINCT steam_appid) AS game_count
-        FROM steam_games,
-        json_each(platforms)
-        WHERE review_score_desc NOT LIKE '%user reviews%'
-            AND json_each.value = :platform
-        GROUP BY review_category
-        ORDER BY game_count DESC
-        """
-        params = {"platform": platform}
-    else:
-        query = """
-        SELECT 
-            review_score_desc AS review_category,
-            COUNT(DISTINCT steam_appid) AS game_count
+            steam_appid,
+            ROUND(CAST("price_initial (USD)" AS FLOAT) / 5.0) * 5 AS rounded_price,
+            platforms
         FROM steam_games
-        WHERE review_score_desc NOT LIKE '%user reviews%'
-        GROUP BY review_category
-        ORDER BY game_count DESC
-        """
-        params = {}
+        WHERE "price_initial (USD)" > 0
+    )
+  	,price_data_filtered as (
+	  	SELECT platforms,rounded_price,COUNT(DISTINCT steam_appid) AS game_count
+	  		FROM price_data
+	  		GROUP BY platforms, rounded_price 
+	  		HAVING game_count > 5
+	)
+    SELECT 
+        json_each.value as platform,
+        AVG(rounded_price) as avg_price,
+        MIN(rounded_price) as min_price,
+        MAX(rounded_price) as max_price
+    FROM price_data_filtered,
+    json_each(platforms)
+    WHERE 1=1
+    {platform_filter}
+    GROUP BY json_each.value
+    ORDER BY game_count DESC
+    """
+    
+    platform_filter = "AND json_each.value = :platform" if platform else ""
+    final_query = query.format(platform_filter=platform_filter)
+    return execute_query(final_query, {"platform": platform} if platform else None)
 
-    with engine.connect() as conn:
-        result = conn.execute(text(query), params)
-        return pd.DataFrame(result.fetchall(), columns=result.keys())
+def get_review_distribution(platform=None):
+    query = """
+    SELECT 
+        review_score_desc AS review_category,
+        COUNT(DISTINCT steam_appid) AS game_count
+    FROM steam_games,
+    json_each(platforms)
+    WHERE review_score_desc NOT LIKE '%user reviews%'
+    {platform_filter}
+    GROUP BY review_category
+    ORDER BY game_count DESC
+    """
+    
+    platform_filter = "AND json_each.value = :platform" if platform else ""
+    final_query = query.format(platform_filter=platform_filter)
+    return execute_query(final_query, {"platform": platform} if platform else None)
 
-def get_top_games_by_platform(platform=None):
-    if platform != 'All':
-        query = """
+def get_top_games(platform=None):
+    query = """
+    SELECT 
+        name,
+        review_score,
+        total_reviews,
+        metacritic,
+        "price_initial (USD)"
+    FROM steam_games,
+    json_each(platforms)
+    WHERE metacritic IS NOT NULL
+        AND total_reviews > 1000
+    {platform_filter}
+    GROUP BY steam_appid
+    ORDER BY metacritic DESC, total_reviews DESC
+    LIMIT 5
+    """
+    
+    platform_filter = "AND json_each.value = :platform" if platform else ""
+    final_query = query.format(platform_filter=platform_filter)
+    return execute_query(final_query, {"platform": platform} if platform else None)
+
+def get_number_games_per_price_band(platform=None):
+    query = """
+    WITH price_data AS (
         SELECT 
-            name,
-            review_score,
-            total_reviews,
-            metacritic,
-            "price_initial (USD)"
-        FROM steam_games,
-        json_each(platforms)
-        WHERE metacritic IS NOT NULL
-            AND total_reviews > 1000
-            AND json_each.value = :platform
-        ORDER BY metacritic DESC, total_reviews DESC
-        LIMIT 5
-        """
-        params = {"platform": platform}
-    else:
-        query = """
-        SELECT 
-            name,
-            review_score,
-            total_reviews,
-            metacritic,
-            "price_initial (USD)"
+            steam_appid,
+            CASE
+                WHEN "price_initial (USD)" <= 30 THEN '0-30'
+                WHEN "price_initial (USD)" <= 60 THEN '31-60'
+                WHEN "price_initial (USD)" <= 90 THEN '61-90'
+                WHEN "price_initial (USD)" <= 120 THEN '91-120'
+                ELSE '>120'
+            END as price_bracket,
+            platforms
         FROM steam_games
-        WHERE metacritic IS NOT NULL
-            AND total_reviews > 1000
-        ORDER BY metacritic DESC, total_reviews DESC
-        LIMIT 5
-        """
-        params = {}
+        WHERE "price_initial (USD)" > 0
+    )
+    ,price_data_filtered as (
+        SELECT 
+            platforms,
+            price_bracket,
+            COUNT(DISTINCT steam_appid) AS game_count
+        FROM price_data
+        GROUP BY platforms, price_bracket 
+        HAVING game_count > 5
+    )
+    SELECT 
+        price_bracket,
+        sum(game_count) as game_count
+    FROM price_data_filtered,
+    json_each(platforms)
+    WHERE 1=1
+    {platform_filter}
+    GROUP BY price_bracket
+    ORDER BY price_bracket
+    """
+    
+    platform_filter = "AND json_each.value = :platform" if platform else ""
+    final_query = query.format(platform_filter=platform_filter)
+    return execute_query(final_query, {"platform": platform} if platform else None)
 
-    with engine.connect() as conn:
-        result = conn.execute(text(query), params)
-        return pd.DataFrame(result.fetchall(), columns=result.keys())
-
+# Cleanup connection
 engine.dispose()
