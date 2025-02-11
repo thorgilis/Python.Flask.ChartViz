@@ -26,7 +26,11 @@ def platform_distribution(df):
             ,title='Platform'
             ,sort='-x'
         ),
-        color=altair.Color('platform:N', legend=None, scale=altair.Scale(scheme='magma')),
+        color=altair.Color(
+            'platform:N'
+            ,legend=None
+            ,scale=altair.Scale(scheme='magma')
+        ),
         tooltip=[
             altair.Tooltip('platform:N', title='Platform'),
             altair.Tooltip('game_count:Q', format=',', title='Number of Games')
@@ -48,7 +52,11 @@ def price_distribution(df):
             'avg_price:Q',
             title='Average Price (USD)'
         ),
-        color=altair.Color('platform:N', legend=None, scale=altair.Scale(scheme='magma')),
+        color=altair.Color(
+            'platform:N'
+            ,legend=None
+            ,scale=altair.Scale(scheme='magma')
+        ),
         tooltip=[
             altair.Tooltip('platform:N', title='Platform'),
             altair.Tooltip('avg_price:Q', format='$,.2f', title='Average Price'),
@@ -79,7 +87,11 @@ def review_score_distribution(df):
             ,title='Review Category'
             ,sort='-x'
         ),
-        color=altair.Color(f'game_count:N', legend=None), # , scale=altair.Scale(scheme='purples')),
+        color=altair.Color(
+            'game_count:N'
+            ,legend=None
+            ,scale=altair.Scale(scheme='category10') # ,scale=altair.Scale(scheme='viridis')
+        ),
         tooltip=[
             altair.Tooltip('review_category:N', title='Review Category'),
             altair.Tooltip('game_count:Q', format=',', title='Number of Games')
@@ -102,7 +114,11 @@ def top_games(df):
             'metacritic:Q'
             ,title='Review Score'
         ),
-        color=altair.Color('name:N', legend=None), #, scale=altair.Scale(scheme='viridis')),
+        color=altair.Color(
+            'name:N'
+            ,legend=None
+            ,scale=altair.Scale(scheme='category10') # ,scale=altair.Scale(scheme='viridis')
+        ), 
         tooltip=[
             altair.Tooltip('name:N', title='Game Name'),
             altair.Tooltip('metacritic:Q', format=',', title='Metacritic'), 
@@ -110,7 +126,7 @@ def top_games(df):
             altair.Tooltip('total_reviews:Q', format=',', title='Total User Reviews')
         ]
     )
-    # Apply base properties and then a title configuration specific for this chart.
+    
     return base_chart_props(chart, 'Top 5 Games by Review Score').configure_title(anchor='middle')
 
 def price_bracket(df):
@@ -132,7 +148,7 @@ def price_bracket(df):
             scale=altair.Scale(scheme='category10')
         ),
         tooltip=[
-            altair.Tooltip('price_bracket:N', title='Price Band'),
+            altair.Tooltip('price_bracket:N', title='Price Band (USD)'),
             altair.Tooltip('game_count:Q', format=',', title='Number of Games'),
             altair.Tooltip('log_value:Q', format=',', title='Log Value')
         ]
