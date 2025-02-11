@@ -1,14 +1,11 @@
 import pandas as pd
 from sqlalchemy import create_engine, text
-import os
 from config import DATABASE_URL 
 
 # Database connection setup
 try:
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    DATABASE_PATH = os.path.join(current_dir, 'data.db')
-    print(f"Database path: {DATABASE_PATH}")
-    engine = create_engine(f'sqlite:///{DATABASE_PATH}')
+    if DATABASE_URL is not None:
+        engine = create_engine(DATABASE_URL)
 except Exception as e:
     print(f"Error connecting to database: {e}")
 
@@ -24,28 +21,28 @@ def execute_query(query, params=None):
 
 def get_platforms():
     query = """
-    SELECT DISTINCT json_each.value as platform
-    FROM steam_games,
-    json_each(platforms)
+    SELECT DISTINCT unnest(platforms) as platform
+    FROM steam_games_parsed
+    group by unnest(platforms)
     """
     platforms = execute_query(query)
-    print(platforms)
     return list(platforms['platform'])
 
 def get_platform_distribution(platform=None):
     query = """
     SELECT 
-        value as platform,
-        COUNT(DISTINCT steam_appid) as game_count
-    FROM steam_games,
-    json_each(platforms)
+        platform,
+        COUNT(*) AS game_count
+    FROM (
+        SELECT unnest(platforms) AS platform
+        FROM steam_games_parsed
+    ) AS p
     WHERE 1=1
     {platform_filter}
-    GROUP BY value
+    GROUP BY platform
     ORDER BY game_count DESC
     """
-    
-    platform_filter = "AND json_each.value = :platform" if platform else ""
+    platform_filter = "AND (:platform IS NULL OR platform = :platform)" if platform else ""
     final_query = query.format(platform_filter=platform_filter)
     return execute_query(final_query, {"platform": platform} if platform else None)
 
@@ -56,29 +53,31 @@ def get_price_distribution(platform=None):
             steam_appid,
             ROUND(CAST("price_initial (USD)" AS FLOAT) / 5.0) * 5 AS rounded_price,
             platforms
-        FROM steam_games
+        FROM steam_games_parsed
         WHERE "price_initial (USD)" > 0
+    ),
+    price_data_filtered AS (
+        SELECT 
+            platforms,
+            rounded_price,
+            COUNT(DISTINCT steam_appid) AS game_count
+        FROM price_data
+        GROUP BY platforms, rounded_price 
+        HAVING COUNT(DISTINCT steam_appid) > 5
     )
-  	,price_data_filtered as (
-	  	SELECT platforms,rounded_price,COUNT(DISTINCT steam_appid) AS game_count
-	  		FROM price_data
-	  		GROUP BY platforms, rounded_price 
-	  		HAVING game_count > 5
-	)
     SELECT 
-        json_each.value as platform,
-        AVG(rounded_price) as avg_price,
-        MIN(rounded_price) as min_price,
-        MAX(rounded_price) as max_price
+        platform,
+        AVG(rounded_price) AS avg_price,
+        MIN(rounded_price) AS min_price,
+        MAX(rounded_price) AS max_price
     FROM price_data_filtered,
-    json_each(platforms)
+         unnest(platforms) AS platform
     WHERE 1=1
     {platform_filter}
-    GROUP BY json_each.value
-    ORDER BY game_count DESC
+    GROUP BY platform
+    ORDER BY avg_price DESC
     """
-    
-    platform_filter = "AND json_each.value = :platform" if platform else ""
+    platform_filter = "AND (:platform IS NULL OR platform = :platform)" if platform else ""
     final_query = query.format(platform_filter=platform_filter)
     return execute_query(final_query, {"platform": platform} if platform else None)
 
@@ -87,15 +86,14 @@ def get_review_distribution(platform=None):
     SELECT 
         review_score_desc AS review_category,
         COUNT(DISTINCT steam_appid) AS game_count
-    FROM steam_games,
-    json_each(platforms)
+    FROM steam_games_parsed,
+         unnest(platforms) AS platform
     WHERE review_score_desc NOT LIKE '%user reviews%'
     {platform_filter}
-    GROUP BY review_category
+    GROUP BY review_score_desc
     ORDER BY game_count DESC
     """
-    
-    platform_filter = "AND json_each.value = :platform" if platform else ""
+    platform_filter = "AND (:platform IS NULL OR platform = :platform)" if platform else ""
     final_query = query.format(platform_filter=platform_filter)
     return execute_query(final_query, {"platform": platform} if platform else None)
 
@@ -107,17 +105,16 @@ def get_top_games(platform=None):
         total_reviews,
         metacritic,
         "price_initial (USD)"
-    FROM steam_games,
-    json_each(platforms)
+    FROM steam_games_parsed,
+         unnest(platforms) AS platform
     WHERE metacritic IS NOT NULL
-        AND total_reviews > 1000
+      AND total_reviews > 1000
     {platform_filter}
-    GROUP BY steam_appid
+    GROUP BY steam_appid, name, review_score, total_reviews, metacritic, "price_initial (USD)"
     ORDER BY metacritic DESC, total_reviews DESC
     LIMIT 5
     """
-    
-    platform_filter = "AND json_each.value = :platform" if platform else ""
+    platform_filter = "AND (:platform IS NULL OR platform = :platform)" if platform else ""
     final_query = query.format(platform_filter=platform_filter)
     return execute_query(final_query, {"platform": platform} if platform else None)
 
@@ -132,32 +129,31 @@ def get_number_games_per_price_band(platform=None):
                 WHEN "price_initial (USD)" <= 90 THEN '61-90'
                 WHEN "price_initial (USD)" <= 120 THEN '91-120'
                 ELSE '>120'
-            END as price_bracket,
+            END AS price_bracket,
             platforms
-        FROM steam_games
+        FROM steam_games_parsed
         WHERE "price_initial (USD)" > 0
-    )
-    ,price_data_filtered as (
+    ),
+    price_data_filtered AS (
         SELECT 
             platforms,
             price_bracket,
             COUNT(DISTINCT steam_appid) AS game_count
         FROM price_data
         GROUP BY platforms, price_bracket 
-        HAVING game_count > 5
+        HAVING COUNT(DISTINCT steam_appid) > 5
     )
     SELECT 
         price_bracket,
-        sum(game_count) as game_count
+        SUM(game_count) AS game_count
     FROM price_data_filtered,
-    json_each(platforms)
+         unnest(platforms) AS platform
     WHERE 1=1
     {platform_filter}
     GROUP BY price_bracket
     ORDER BY price_bracket
     """
-    
-    platform_filter = "AND json_each.value = :platform" if platform else ""
+    platform_filter = "AND (:platform IS NULL OR platform = :platform)" if platform else ""
     final_query = query.format(platform_filter=platform_filter)
     return execute_query(final_query, {"platform": platform} if platform else None)
 
