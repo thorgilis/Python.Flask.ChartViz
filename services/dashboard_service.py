@@ -6,7 +6,7 @@ from database.queries import (
     get_platforms,
     get_price_band_distribution,
 )
-from ..charts import (
+from app.charts import (
     platform_distribution,
     price_distribution,
     review_score_distribution,

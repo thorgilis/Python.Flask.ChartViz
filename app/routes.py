@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request
-from .services.dashboard_service import get_dashboard_data
+from services.dashboard_service import get_dashboard_data
 
 main = Blueprint('main', __name__)
 
