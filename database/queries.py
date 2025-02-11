@@ -1,7 +1,6 @@
 import pandas as pd
 from sqlalchemy import create_engine, text
 import os
-from config import DATABASE_URL 
 
 # Database connection setup
 try:
