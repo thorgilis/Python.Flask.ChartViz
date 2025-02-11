@@ -1,4 +1,4 @@
-``# Interactive Games Dashboard
+# Interactive Games Dashboard
 
 This project is a web application that provides interactive charts based on data from a PostgreSQL database. It allows users to explore various metrics related to video games, including top games, worst games, top free games, and a comparison of free games versus paid games.
 
@@ -19,16 +19,23 @@ interactive-games-dashboard
 ├── database
 │   ├── __init__.py
 │   ├── data.db
+│   ├── queries_pgsql.py
 │   └── queries.py
+├── services
+│   ├── __init__.py
+│   └── dashboard_service.py
 ├── static
 │   └── css
 │       └── style.css
 ├── templates
 │   ├── base.html
 │   └── dashboard.html
-├── config.py
-├── requirements.txt
-├── Dockerfile
+├── config
+│   └── config.py
+├── requirements
+│   └── requirements.txt
+├── docker
+│   └── Dockerfile
 ├── run.py
 └── README.md
 ```
@@ -46,7 +53,14 @@ interactive-games-dashboard
    pip install -r requirements.txt
    ```
 
-3. Configure the database connection in `config.py`.
+3. You can either:
+   - Use the sqlite database included in the repo - No changes required
+   - Use a postgresql version of the data (not included in the repo) 
+      - Change the following reference in services.dashboard_service.py
+         from database.queries import
+         to
+         from database.queries_pgsql import
+
 
 ## Running the Application
 
