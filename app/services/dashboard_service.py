@@ -4,14 +4,14 @@ from database.queries import (
     get_review_distribution,
     get_top_games,
     get_platforms,
-    get_number_games_per_price_band,
+    get_price_band_distribution,
 )
 from ..charts import (
     platform_distribution,
     price_distribution,
     review_score_distribution,
     top_games,
-    price_bracket,
+    price_band_distribution,
 )
 
 def get_dashboard_data(requested_platform):
@@ -29,14 +29,14 @@ def get_dashboard_data(requested_platform):
     df_top = get_top_games(selected_platform)
     df_reviews = get_review_distribution(selected_platform)
     df_price = get_price_distribution(selected_platform)
-    df_price_band = get_number_games_per_price_band(selected_platform)
+    df_price_band = get_price_band_distribution(selected_platform)
     
     # Generate all charts
     platform_chart = platform_distribution(df_platform)
     price_chart = price_distribution(df_price)
     review_chart = review_score_distribution(df_reviews)
     top_games_chart = top_games(df_top)
-    price_bracket_chart = price_bracket(df_price_band)
+    price_band_chart = price_band_distribution(df_price_band)
     
     # Convert charts to dictionaries for Vega-Lite
     charts = {
@@ -44,7 +44,7 @@ def get_dashboard_data(requested_platform):
         'price_chart': price_chart.to_dict(),
         'review_chart': review_chart.to_dict(),
         'top_games': top_games_chart.to_dict(),
-        'price_box': price_bracket_chart.to_dict()
+        'price_box': price_band_chart.to_dict()
     }
     
     return valid_platforms, selected_platform, charts

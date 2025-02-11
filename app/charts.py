@@ -175,7 +175,7 @@ def top_games(df: pd.DataFrame) -> altair.Chart:
     # Configure title to be anchored in the middle.
     return base_chart_props(chart, 'Top 5 Games by Review Score').configure_title(anchor='middle')
 
-def price_bracket(df: pd.DataFrame) -> altair.Chart:
+def price_band_distribution(df: pd.DataFrame) -> altair.Chart:
     """
     Create a bar chart showing distribution of games by price bracket on a logarithmic scale.
     

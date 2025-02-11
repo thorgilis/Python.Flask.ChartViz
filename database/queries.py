@@ -192,7 +192,7 @@ def get_top_games(platform: Optional[str] = None) -> pd.DataFrame:
     params = {"platform": platform} if platform else None
     return execute_query(final_query, params)
 
-def get_number_games_per_price_band(platform: Optional[str] = None) -> pd.DataFrame:
+def get_price_band_distribution(platform: Optional[str] = None) -> pd.DataFrame:
     """
     Count the number of games that fall into predefined price bands.
     
