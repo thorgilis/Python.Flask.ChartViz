@@ -73,8 +73,14 @@ The application will be accessible at `http://127.0.0.1:5000`.
    ```
 
 3. Push It!!
-   ```
+   ```bash
    docker push 192.168.0.63:5000/interactive-games-dashboard:latest
+   ```
+
+4. Or..
+   ```bash
+   docker build --platform=linux/amd64 -t 192.168.0.63:5000/interactive-games-dashboard:sqlite . \
+   && docker push 192.168.0.63:5000/interactive-games-dashboard:sqlite
    ```
 
 ## Usage
