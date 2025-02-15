@@ -18,16 +18,24 @@ interactive-games-dashboard
 │   └── charts.py
 ├── database
 │   ├── __init__.py
+│   ├── data.db
+│   ├── queries_pgsql.py
 │   └── queries.py
+├── services
+│   ├── __init__.py
+│   └── dashboard_service.py
 ├── static
 │   └── css
 │       └── style.css
 ├── templates
 │   ├── base.html
 │   └── dashboard.html
-├── config.py
-├── requirements.txt
-├── Dockerfile
+├── config
+│   └── config.py
+├── requirements
+│   └── requirements.txt
+├── docker
+│   └── Dockerfile
 ├── run.py
 └── README.md
 ```
@@ -45,7 +53,14 @@ interactive-games-dashboard
    pip install -r requirements.txt
    ```
 
-3. Configure the database connection in `config.py`.
+3. You can either:
+   - Use the sqlite database included in the repo - No changes required
+   - Use a postgresql version of the data (not included in the repo) 
+      - Change the following reference in services.dashboard_service.py
+         from database.queries import
+         to
+         from database.queries_pgsql import
+
 
 ## Running the Application
 
@@ -64,6 +79,22 @@ The application will be accessible at `http://127.0.0.1:5000`.
 1. Build the Docker image:
    ```bash
    docker build -t interactive-games-dashboard .
+   ```
+
+2. Build the Docker image, with tags:
+   ```bash
+   docker build --platform=linux/amd64 -t 192.168.0.63:5000/interactive-games-dashboard:latest .
+   ```
+
+3. Push It!!
+   ```bash
+   docker push 192.168.0.63:5000/interactive-games-dashboard:latest
+   ```
+
+4. Or..
+   ```bash
+   docker build --platform=linux/amd64 -t 192.168.0.63:5000/interactive-games-dashboard:sqlite . \
+   && docker push 192.168.0.63:5000/interactive-games-dashboard:sqlite
    ```
 
 ## Usage
