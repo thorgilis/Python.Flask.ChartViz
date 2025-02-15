@@ -3,6 +3,11 @@ FROM python:3.13-slim
 # Prevents Python from writing .pyc files to disc and buffering stdout/stderr.
 ENV PYTHONUNBUFFERED=1
 
+# Install the required system packages
+RUN apt-get update && apt-get install -y \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
 # Set the working directory to /app
 WORKDIR /app
 
