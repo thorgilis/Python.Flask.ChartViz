@@ -50,7 +50,6 @@ def get_platforms() -> list:
          json_each(platforms)
     """
     platforms = execute_query(query)
-    print(platforms)
     return list(platforms['platform'])
 
 def get_platform_distribution(platform: Optional[str] = None) -> pd.DataFrame:
