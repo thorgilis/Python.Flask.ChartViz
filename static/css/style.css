@@ -1,7 +1,9 @@
+/* Style for the filter section container */
 .filter-section {
     margin: 20px;
 }
 
+/* Style for select elements used in forms */
 select {
     padding: 8px;
     font-size: 16px;
@@ -9,22 +11,58 @@ select {
     border: 1px solid #ccc;
 }
 
+/* Basic styling for carousel navigation controls (previous and next) */
 .carousel-control-prev,
 .carousel-control-next {
     width: 5%;
     background-color: rgba(0, 0, 0, 0.2);
 }
 
+/* Enhanced background color on hover for carousel controls */
 .carousel-control-prev:hover,
 .carousel-control-next:hover {
     background-color: rgba(0, 0, 0, 0.3);
 }
 
+/* Styling for card containers with a subtle shadow effect */
 .card {
     background-color: white;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
+/* Styling for card body to maintain relative positioning */
 .card-body {
     position: relative;
+    height: auto;
+}
+
+/* Grid layout for the dashboard to align multiple cards/charts */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    padding: 20px;
+}
+
+/* Chart container styling with border, padding, and rounded corners */
+.chart-container {
+    border: 1px solid #ddd;
+    padding: 15px;
+    border-radius: 8px;
+    background: white;
+}
+
+/* Override styling for card bodies within a carousel to fix height and center content */
+.carousel .card-body {
+    height: 500px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Styling for Vega embed containers with enforced dimensions and centered alignment */
+.vega-embed {
+    width: 90% !important;
+    height: 100% !important;
+    margin: 0 auto !important;
 }
