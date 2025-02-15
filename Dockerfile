@@ -3,10 +3,6 @@ FROM python:3.13-slim
 # Prevents Python from writing .pyc files to disc and buffering stdout/stderr.
 ENV PYTHONUNBUFFERED=1
 
-# Install SQLite3 and the necessary development libraries
-RUN apt-get update && apt-get install -y sqlite3 libsqlite3-dev
-RUN apt-get install -y curl
-
 # Set the working directory to /app
 WORKDIR /app
 
