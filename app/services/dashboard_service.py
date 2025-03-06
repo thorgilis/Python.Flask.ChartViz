@@ -1,4 +1,4 @@
-from database.queries import (
+from app.database.queries import (
     get_platform_distribution,
     get_price_distribution,
     get_review_distribution,

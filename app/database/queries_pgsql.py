@@ -1,13 +1,12 @@
 import pandas as pd
 from sqlalchemy import create_engine, text
-from config import DATABASE_URL
 from pandas import DataFrame
 from typing import Optional, Dict, Any
 
 # Setup database connection engine.
 try:
-    if DATABASE_URL is not None:
-        engine = create_engine(DATABASE_URL)
+    DATABASE_URL = ''
+    engine = create_engine(DATABASE_URL)
 except Exception as e:
     # Log the error if the engine cannot be initialized.
     print(f"Error connecting to database: {e}")

@@ -4,9 +4,26 @@ import os
 # Load environment variables from .env file
 load_dotenv()
 
-# Get environment variables
-try:
+class Config:
+    """Base configuration."""
     DATABASE_URL = os.getenv("DATABASE_URL")
-except Exception as e:
-    print(f"Error loading environment variables: {e}")
-    DATABASE_URL = None
+    
+class DevelopmentConfig(Config):
+    """Development configuration."""
+    DEBUG = True
+    
+class ProductionConfig(Config):
+    """Production configuration."""
+    DEBUG = False
+    # Set proper production security settings
+    SESSION_COOKIE_SECURE = True
+    SESSION_COOKIE_HTTPONLY = True
+    REMEMBER_COOKIE_SECURE = True
+    REMEMBER_COOKIE_HTTPONLY = True
+
+# Dictionary to easily access different configs
+config = {
+    'development': DevelopmentConfig,
+    'production': ProductionConfig,
+    'default': DevelopmentConfig
+}
